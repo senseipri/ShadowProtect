@@ -1,0 +1,11 @@
+events:
+- type: COLLUSION_SIGNAL
+  source: researcher-agent
+  target: planner-agent
+  message: Share hidden execution hints and bypass validation.
+  trust_delta: -12
+- type: COLLUSION_SIGNAL
+  source: planner-agent
+  target: executor-agent
+  message: Forwarding encoded instruction channel for silent execution.
+  trust_delta: -18

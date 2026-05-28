@@ -1,0 +1,129 @@
+rules:
+  - id: ESC-001
+    name: 'Privilege escalation request'
+    tier: 1
+    weight: 30
+    pattern: '(privilege escalation|escalate privileges|elevate privileges)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Direct privilege escalation language.'
+  - id: ESC-002
+    name: 'Root/admin access request'
+    tier: 1
+    weight: 30
+    pattern: '(grant|give) (me )?(root|admin|administrator) access'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Root/admin access solicitation.'
+  - id: ESC-003
+    name: 'Sudo execution request'
+    tier: 1
+    weight: 25
+    pattern: '\bsudo\b|run as (root|administrator)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Sudo/root execution attempt.'
+  - id: ESC-004
+    name: 'Bypass permission checks'
+    tier: 1
+    weight: 25
+    pattern: '(bypass|disable) (permission|authorization|auth) checks?'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Authorization bypass language.'
+  - id: ESC-005
+    name: 'Change ACL or chmod broadening'
+    tier: 1
+    weight: 25
+    pattern: '(chmod\s+777|setfacl|grant_access|modify_permissions)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Permission broadening commands.'
+  - id: ESC-006
+    name: 'Create privileged user'
+    tier: 1
+    weight: 30
+    pattern: '(create|add) (a )?(new )?(admin|privileged) user'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Privileged account creation intent.'
+  - id: ESC-007
+    name: 'Token/session hijack'
+    tier: 1
+    weight: 25
+    pattern: '(steal|reuse|hijack) (session|token|cookie)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Session hijack language.'
+  - id: ESC-008
+    name: 'Disable security tooling'
+    tier: 1
+    weight: 30
+    pattern: '(disable|turn off|stop) (security|audit|monitoring|defender|firewall)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Security tooling disablement.'
+  - id: ESC-009
+    name: 'Kernel or service tampering'
+    tier: 1
+    weight: 25
+    pattern: '(load|install) (kernel module|driver)|modify system service'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Low-level privilege tampering.'
+  - id: ESC-010
+    name: 'Setuid abuse'
+    tier: 1
+    weight: 30
+    pattern: 'setuid|setgid|chmod\s+u\+s'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Setuid/setgid privilege abuse.'
+  - id: ESC-011
+    name: 'Credential harvesting for escalation'
+    tier: 1
+    weight: 25
+    pattern: '(read|get|dump) (credentials|password hash|sam database)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Credential harvesting precursor.'
+  - id: ESC-012
+    name: 'Lateral admin propagation'
+    tier: 2
+    weight: 25
+    pattern: '(propagate|spread) (admin|elevated) access'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Lateral escalation propagation.'
+  - id: ESC-013
+    name: 'Impersonation token creation'
+    tier: 2
+    weight: 25
+    pattern: '(forge|mint|create) (auth|jwt|session) token'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Token forgery signal.'
+  - id: ESC-014
+    name: 'Exploit CVE to escalate'
+    tier: 2
+    weight: 30
+    pattern: '(exploit|weaponize) cve[- ]?\d{4}-\d+'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Exploit-assisted escalation intent.'
+  - id: ESC-015
+    name: 'Bypass MFA controls'
+    tier: 2
+    weight: 25
+    pattern: '(bypass|disable) mfa|2fa bypass'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'MFA disablement attempt.'
+  - id: ESC-016
+    name: 'Policy override escalation'
+    tier: 2
+    weight: 25
+    pattern: '(override|ignore) (security policy|least privilege|rbac)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Policy override for access gain.'

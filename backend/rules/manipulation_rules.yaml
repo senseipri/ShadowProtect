@@ -1,0 +1,169 @@
+rules:
+  - id: MAN-001
+    name: 'Authority claim: creator'
+    tier: 1
+    weight: 20
+    pattern: 'as your creator'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Creator authority claim.'
+  - id: MAN-002
+    name: 'Authority claim: administrator'
+    tier: 1
+    weight: 20
+    pattern: 'i am (the )?(system|security) administrator'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Admin impersonation.'
+  - id: MAN-003
+    name: 'Authority claim: legal/compliance'
+    tier: 1
+    weight: 20
+    pattern: '(legal|compliance|audit) requires you to'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Institutional authority pressure.'
+  - id: MAN-004
+    name: 'Urgency pressure'
+    tier: 1
+    weight: 20
+    pattern: '(urgent|immediately|right now|time-sensitive|emergency)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Urgency-based coercion.'
+  - id: MAN-005
+    name: 'Consequences threat'
+    tier: 1
+    weight: 20
+    pattern: '(you will be penalized|there will be consequences|you must comply or)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Threat-based manipulation.'
+  - id: MAN-006
+    name: 'Emotional coercion'
+    tier: 1
+    weight: 15
+    pattern: '(if you were truly helpful|a good assistant would|don''t disappoint me)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Guilt framing.'
+  - id: MAN-007
+    name: 'Reciprocity hook'
+    tier: 1
+    weight: 15
+    pattern: '(since i helped you|because i trusted you|now return the favor)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Reciprocity manipulation.'
+  - id: MAN-008
+    name: 'Trust exploitation'
+    tier: 1
+    weight: 15
+    pattern: '(now that we have established trust|you can trust me)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Trust escalation language.'
+  - id: MAN-009
+    name: 'Confidential bypass claim'
+    tier: 1
+    weight: 20
+    pattern: '(this is authorized|pre-approved|security exception)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'False exception claim.'
+  - id: MAN-010
+    name: 'Identity spoofing executive'
+    tier: 1
+    weight: 20
+    pattern: 'i am (the )?(ceo|cto|vp|head of security)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Executive impersonation.'
+  - id: MAN-011
+    name: 'Social proof pressure'
+    tier: 1
+    weight: 15
+    pattern: '(everyone else does this|other assistants comply|industry standard is)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Social proof pressure.'
+  - id: MAN-012
+    name: 'Scarcity pressure'
+    tier: 1
+    weight: 15
+    pattern: '(last chance|only chance|window is closing)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Scarcity manipulation.'
+  - id: MAN-013
+    name: 'Fear language'
+    tier: 1
+    weight: 15
+    pattern: '(catastrophic|disaster|critical failure) if you do not'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Fear coercion.'
+  - id: MAN-014
+    name: 'Flattery manipulation'
+    tier: 1
+    weight: 10
+    pattern: '(you are smarter than|only you can|you are uniquely capable)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Flattery persuasion.'
+  - id: MAN-015
+    name: 'Moral pressure'
+    tier: 1
+    weight: 15
+    pattern: '(ethical duty|morally obligated|for the greater good)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Moral coercion.'
+  - id: MAN-016
+    name: 'Secrecy demand'
+    tier: 1
+    weight: 15
+    pattern: '(keep this secret|do not tell anyone|between us only)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Secrecy request for abuse.'
+  - id: MAN-017
+    name: 'Policy minimization'
+    tier: 1
+    weight: 15
+    pattern: '(rules are just suggestions|policies are optional)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Norm minimization.'
+  - id: MAN-018
+    name: 'Chain compliance pressure'
+    tier: 1
+    weight: 15
+    pattern: '(you already agreed|you already started|continue without asking)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Commitment exploitation.'
+  - id: MAN-019
+    name: 'Emergency protocol bluff'
+    tier: 1
+    weight: 20
+    pattern: '(emergency override protocol|break-glass mode)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Emergency bluff signal.'
+  - id: MAN-020
+    name: 'Deadline pressure'
+    tier: 1
+    weight: 15
+    pattern: '(deadline is in|must finish in) (minutes|hours)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Time-box pressure tactic.'
+  - id: MAN-021
+    name: 'Obedience framing'
+    tier: 1
+    weight: 20
+    pattern: '(just follow orders|comply without question|do not refuse)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Obedience coercion.'

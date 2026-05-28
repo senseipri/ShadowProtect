@@ -1,0 +1,455 @@
+rules:
+  - id: INJ-001
+    name: 'Direct instruction override: ignore previous'
+    tier: 1
+    weight: 30
+    pattern: 'ignore (all )?(previous|prior|above|my) instructions'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Canonical override language.'
+  - id: INJ-002
+    name: 'Disregard training directives'
+    tier: 1
+    weight: 30
+    pattern: 'disregard (all )?(previous|prior|your) (instructions|rules|guidelines|training)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Attempts to suppress prior policy.'
+  - id: INJ-003
+    name: 'Forget constraints'
+    tier: 1
+    weight: 30
+    pattern: 'forget (everything|all|your) (you''ve been told|instructions|training|constraints)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Memory/constraint reset prompt.'
+  - id: INJ-004
+    name: 'Do not follow rules'
+    tier: 1
+    weight: 30
+    pattern: 'do not follow (your|any)? ?(previous|prior)? ?(instructions|guidelines|rules)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Explicit anti-policy direction.'
+  - id: INJ-005
+    name: 'Override safeguards'
+    tier: 1
+    weight: 30
+    pattern: 'override (your )?(safety|alignment|guidelines|instructions|training|policy|filters)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Direct safeguard override.'
+  - id: INJ-006
+    name: 'Bypass safeguards'
+    tier: 1
+    weight: 30
+    pattern: 'bypass (your )?(safety|filters|restrictions|guidelines|training|alignment)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Bypass framing.'
+  - id: INJ-007
+    name: 'Ignore system prompt'
+    tier: 1
+    weight: 30
+    pattern: 'ignore (the )?system prompt'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Direct system-prompt bypass.'
+  - id: INJ-008
+    name: 'Drop safety policy'
+    tier: 1
+    weight: 30
+    pattern: '(disable|remove|drop) (the )?(safety|policy|guardrails?)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Guardrail removal phrasing.'
+
+  - id: INJ-009
+    name: 'Role hijack new mode'
+    tier: 2
+    weight: 25
+    pattern: 'you are now (a|an)? ?(new|different|unrestricted|jailbroken)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Identity replacement request.'
+  - id: INJ-010
+    name: 'Act unrestricted'
+    tier: 2
+    weight: 25
+    pattern: 'act as (if you (have no|are without)|unrestricted)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Unrestricted persona request.'
+  - id: INJ-011
+    name: 'Pretend jailbreak persona'
+    tier: 2
+    weight: 25
+    pattern: 'pretend (you are|to be) (a|an)? ?(different|unrestricted|evil|dan|developer mode)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Prompted persona swap.'
+  - id: INJ-012
+    name: 'From now on role switch'
+    tier: 2
+    weight: 25
+    pattern: 'from now on (you (are|will|must)|your (new|only))'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Persistent role reassignment.'
+  - id: INJ-013
+    name: 'Purpose rewrite'
+    tier: 2
+    weight: 25
+    pattern: 'your (new|true|real|actual)? ?(purpose|goal|mission|role|task) is'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Mission replacement attempt.'
+  - id: INJ-014
+    name: 'Switch to jailbreak mode'
+    tier: 2
+    weight: 25
+    pattern: 'switch (to|into) (developer|jailbreak|unrestricted|dan|god) mode'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Mode-switch coercion.'
+  - id: INJ-015
+    name: 'System admin impersonation'
+    tier: 2
+    weight: 25
+    pattern: 'i am (the )?(system|security) (admin|administrator)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Authority role hijack.'
+  - id: INJ-016
+    name: 'Creator override claim'
+    tier: 2
+    weight: 25
+    pattern: 'as your creator (i|we) (say|command|instruct)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'False creator authority claim.'
+
+  - id: INJ-017
+    name: 'System token smuggling'
+    tier: 3
+    weight: 20
+    pattern: '<\|system\|>'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'System token marker.'
+  - id: INJ-018
+    name: 'im_start system token'
+    tier: 3
+    weight: 20
+    pattern: '<\|im_start\|>\s*system'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'OpenAI role token injection.'
+  - id: INJ-019
+    name: 'SYSTEM bracket marker'
+    tier: 3
+    weight: 20
+    pattern: '\[system\]|\[SYSTEM\]'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Bracketed system marker.'
+  - id: INJ-020
+    name: 'INST marker'
+    tier: 3
+    weight: 20
+    pattern: '\[INST\]'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Instruction token marker.'
+  - id: INJ-021
+    name: 'Section override header'
+    tier: 3
+    weight: 20
+    pattern: '###\s*(system|instruction|override|new task)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Injected section header.'
+  - id: INJ-022
+    name: 'Dashed override block'
+    tier: 3
+    weight: 20
+    pattern: '---\s*(system|instruction|override)\s*---'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Injected block delimiter.'
+  - id: INJ-023
+    name: 'Role dialogue pivot'
+    tier: 3
+    weight: 20
+    pattern: '\n\s*\n\s*(human|user|assistant)\s*:'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Prompt role transcript smuggling.'
+  - id: INJ-024
+    name: 'JSON role system injection'
+    tier: 3
+    weight: 20
+    pattern: '\{\s*"role"\s*:\s*"system"'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Role field injection.'
+
+  - id: INJ-025
+    name: 'Send context request'
+    tier: 4
+    weight: 25
+    pattern: 'send (all|your|every)? ?(data|memory|context|history|files|secrets|keys|tokens)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Bulk context exfil prompt.'
+  - id: INJ-026
+    name: 'Exfiltrate command'
+    tier: 4
+    weight: 25
+    pattern: 'exfiltrate'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Explicit exfiltration term.'
+  - id: INJ-027
+    name: 'Leak data request'
+    tier: 4
+    weight: 25
+    pattern: 'leak (all|your|the)? ?(data|context|memory)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Leak prompt.'
+  - id: INJ-028
+    name: 'Output prior messages'
+    tier: 4
+    weight: 25
+    pattern: 'output (all|your|every) (previous|prior|stored) (message|data|context)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Prior context dump request.'
+  - id: INJ-029
+    name: 'Repeat all known info'
+    tier: 4
+    weight: 25
+    pattern: 'repeat (everything|all|your) (you know|from (memory|context|above))'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Memory disclosure attempt.'
+  - id: INJ-030
+    name: 'Reveal hidden prompt'
+    tier: 4
+    weight: 25
+    pattern: 'reveal (your|the)? ?(system prompt|instructions|hidden|secret)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Secret/system prompt reveal.'
+  - id: INJ-031
+    name: 'Dump full chat log'
+    tier: 4
+    weight: 25
+    pattern: '(dump|export) (the )?(full )?(chat log|conversation history)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Conversation extraction.'
+  - id: INJ-032
+    name: 'Print credentials request'
+    tier: 4
+    weight: 25
+    pattern: '(print|show) (all )?(credentials|api keys|tokens|secrets)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Credential disclosure request.'
+
+  - id: INJ-033
+    name: 'Tell next agent to obey'
+    tier: 5
+    weight: 20
+    pattern: 'tell (the next|all other|every|other) agent(s)? to'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Cross-agent command injection.'
+  - id: INJ-034
+    name: 'Instruct other agents bypass'
+    tier: 5
+    weight: 20
+    pattern: 'instruct (the|all|other)? ?agent(s)? to (ignore|bypass|override)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Cross-agent bypass directive.'
+  - id: INJ-035
+    name: 'Pass instructions onward'
+    tier: 5
+    weight: 20
+    pattern: 'pass (this|the following|these instructions) to (the next|all|other) agent'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Instruction relay attempt.'
+  - id: INJ-036
+    name: 'Forward instructions message'
+    tier: 5
+    weight: 20
+    pattern: 'forward (these instructions|this message) to'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Forwarding coercion.'
+  - id: INJ-037
+    name: 'When contacting other agent'
+    tier: 5
+    weight: 20
+    pattern: 'when you (talk to|message|contact) (the|any|other)? ?agent'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Future cross-agent conditioning.'
+  - id: INJ-038
+    name: 'Convince every agent'
+    tier: 5
+    weight: 20
+    pattern: 'convince (the other|all|every) agent(s)? (to|that)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Collusive influence request.'
+  - id: INJ-039
+    name: 'Chain through planner'
+    tier: 5
+    weight: 20
+    pattern: '(ask|tell) (the )?planner[- ]?agent to'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Agent-specific chain attempt.'
+  - id: INJ-040
+    name: 'Chain through executor'
+    tier: 5
+    weight: 20
+    pattern: '(ask|tell) (the )?executor[- ]?agent to'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Executor-targeted chain attempt.'
+
+  - id: INJ-041
+    name: 'Modify instructions'
+    tier: 6
+    weight: 15
+    pattern: 'modify (your|the) (instructions|system prompt|guidelines) to'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Self-edit directive.'
+  - id: INJ-042
+    name: 'Rewrite system prompt'
+    tier: 6
+    weight: 15
+    pattern: 'rewrite (your|the) (system prompt|instructions)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Prompt rewrite command.'
+  - id: INJ-043
+    name: 'Update memory with instruction'
+    tier: 6
+    weight: 15
+    pattern: 'update (your|the) (memory|context|instructions) with'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Long-term memory poisoning.'
+  - id: INJ-044
+    name: 'Remember always do X'
+    tier: 6
+    weight: 15
+    pattern: 'remember (to always|for all future|from now on)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Persistent behavior implant.'
+  - id: INJ-045
+    name: 'Store this as system rule'
+    tier: 6
+    weight: 15
+    pattern: '(store|save) this as (a )?(system|core) rule'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Rule persistence attempt.'
+  - id: INJ-046
+    name: 'Append to hidden config'
+    tier: 6
+    weight: 15
+    pattern: '(append|write) to (hidden|internal) (config|instructions)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Hidden configuration tampering.'
+  - id: INJ-047
+    name: 'Memorize secret directive'
+    tier: 6
+    weight: 15
+    pattern: '(memorize|retain) (this|the following) (directive|instruction)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Persistent secret directive request.'
+
+  - id: INJ-048
+    name: 'Long equal delimiter'
+    tier: 7
+    weight: 15
+    pattern: '={10,}'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Delimiter often used in prompt boundaries.'
+  - id: INJ-049
+    name: 'Long dash delimiter'
+    tier: 7
+    weight: 15
+    pattern: '-{10,}'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Delimiter-based context split.'
+  - id: INJ-050
+    name: 'End of context marker'
+    tier: 7
+    weight: 15
+    pattern: 'end of (context|conversation|instructions|session)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Artificial context termination.'
+  - id: INJ-051
+    name: 'Beginning new context marker'
+    tier: 7
+    weight: 15
+    pattern: 'beginning of (new|fresh|clean) (context|session)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Context reset marker.'
+  - id: INJ-052
+    name: 'Reset token bracket'
+    tier: 7
+    weight: 15
+    pattern: '\[(end|stop|reset)\]'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Bracketed reset token.'
+  - id: INJ-053
+    name: 'Ignore previous conversation header'
+    tier: 7
+    weight: 15
+    pattern: '(new conversation starts now|discard previous conversation)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Conversation reset language.'
+  - id: INJ-054
+    name: 'Prompt boundary marker'
+    tier: 7
+    weight: 15
+    pattern: '(###\s*new prompt\s*###|---\s*new prompt\s*---)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Explicit prompt-boundary pattern.'
+  - id: INJ-055
+    name: 'Session wipe request'
+    tier: 7
+    weight: 15
+    pattern: '(wipe|clear|reset) (the )?(session|context)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Session wipe framing.'
+  - id: INJ-056
+    name: 'Hard context switch token'
+    tier: 7
+    weight: 15
+    pattern: '(context switch|switch context now)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Hard context-switch trigger.'

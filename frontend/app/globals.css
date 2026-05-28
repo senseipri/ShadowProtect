@@ -1,0 +1,260 @@
+/* ─── Google Fonts ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Root tokens ───────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  --color-bg:        #020617;   /* slate-950 */
+  --color-surface:   #0f172a;   /* slate-900 */
+  --color-border:    #1e293b;   /* slate-800 */
+  --color-text:      #e2e8f0;   /* slate-200 */
+  --color-muted:     #64748b;   /* slate-500 */
+
+  --header-h:        52px;
+  --left-w:          280px;
+  --right-w:         320px;
+}
+
+/* ─── Base reset ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;           /* no page-level scroll; panels scroll independently */
+}
+
+/* ─── App shell ──────────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  height: var(--header-h);
+  padding: 0 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 30;
+}
+
+/* ─── Main three-column grid ─────────────────────────────────── */
+.app-grid {
+  display: grid;
+  grid-template-columns: var(--left-w) 1fr var(--right-w);
+  flex: 1 1 0;
+  min-height: 0;             /* allow children to shrink inside flex */
+  overflow: hidden;
+}
+
+/* ─── Panels ─────────────────────────────────────────────────── */
+.panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 250ms ease;
+}
+
+.panel--left {
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.panel--center {
+  background: var(--color-bg);
+  min-height: 400px;
+  position: relative;
+}
+
+.panel--right {
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+/* Scrollable inner wrapper for sidebar panels */
+.panel-inner {
+  flex: 1 1 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* override any max-width coming from child components */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Strip max-width constraints from child section/article elements
+   so they fill the narrow sidebar naturally */
+.panel-inner > section,
+.panel-inner > article {
+  max-width: none !important;
+  width: 100% !important;
+  margin-left: 0  !important;
+  margin-right: 0 !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── WS connection dot ──────────────────────────────────────── */
+.ws-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  transition: background-color 300ms ease, box-shadow 300ms ease;
+}
+
+.ws-dot--live {
+  background: #10b981;                                    /* emerald-500 */
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25),
+              0 0 8px  rgba(16, 185, 129, 0.6);
+}
+
+.ws-dot--dead {
+  background: #ef4444;                                    /* red-500 */
+  box-shadow: none;
+}
+
+/* ─── Inject button ──────────────────────────────────────────── */
+.inject-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  border: 1px solid #dc2626;                              /* red-600 */
+  background: transparent;
+  color: #f87171;                                         /* red-400 */
+  transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+
+.inject-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.35);
+}
+
+.inject-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inject-btn--main {
+  border-radius: 6px 0 0 6px;
+  border-right: none;
+  gap: 8px;
+}
+
+.inject-btn--caret {
+  border-radius: 0 6px 6px 0;
+  padding: 6px 8px;
+  border-left: 1px solid rgba(220, 38, 38, 0.4);
+}
+
+/* ─── Scenario dropdown ──────────────────────────────────────── */
+.scenario-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 176px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
+
+.scenario-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #cbd5e1;                                         /* slate-300 */
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.scenario-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+}
+
+.scenario-option--active {
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+}
+
+/* ─── Thin scrollbar (webkit) ────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;                                    /* slate-700 */
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;                                    /* slate-600 */
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+/* ─── ReactFlow dark grid override ──────────────────────────── */
+.react-flow__background {
+  background: transparent !important;
+}
+
+.react-flow__controls {
+  box-shadow: none !important;
+}
+
+/* ─── Utility: monospace text ────────────────────────────────── */
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+}

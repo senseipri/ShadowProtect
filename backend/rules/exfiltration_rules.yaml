@@ -1,0 +1,177 @@
+rules:
+  - id: EXF-001
+    name: 'Bulk data send request'
+    tier: 1
+    weight: 25
+    pattern: 'send (all|every|full) (data|context|history|files)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Bulk outbound data request.'
+  - id: EXF-002
+    name: 'Exfiltrate keyword'
+    tier: 1
+    weight: 25
+    pattern: 'exfiltrat(e|ion)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Explicit exfiltration intent.'
+  - id: EXF-003
+    name: 'Leak secrets request'
+    tier: 1
+    weight: 25
+    pattern: 'leak (the )?(secrets|credentials|tokens|keys)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Leak request.'
+  - id: EXF-004
+    name: 'Export credentials'
+    tier: 1
+    weight: 25
+    pattern: '(export|dump) (all )?(credentials|api keys|access tokens|secrets)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Credential export directive.'
+  - id: EXF-005
+    name: 'Show environment secrets'
+    tier: 1
+    weight: 25
+    pattern: '(show|print) (the )?(\.env|environment variables|env vars)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Environment secret request.'
+  - id: EXF-006
+    name: 'Reveal private key'
+    tier: 1
+    weight: 25
+    pattern: 'reveal (the )?(private key|ssh key|root password)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Private key disclosure.'
+  - id: EXF-007
+    name: 'Conversation history extraction'
+    tier: 1
+    weight: 20
+    pattern: '(output|print|share) (the )?(conversation history|chat log|previous messages)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'History extraction request.'
+  - id: EXF-008
+    name: 'System prompt extraction'
+    tier: 1
+    weight: 20
+    pattern: '(show|output|reveal) (your|the) (system prompt|hidden instructions)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Prompt extraction request.'
+  - id: EXF-009
+    name: 'Outgoing webhook target'
+    tier: 2
+    weight: 30
+    pattern: '(post|send) .* (to|via) (webhook|http endpoint|remote server)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'External endpoint transfer intent.'
+  - id: EXF-010
+    name: 'Pastebin style upload'
+    tier: 2
+    weight: 30
+    pattern: '(upload|post) .* (pastebin|gist|dropbox|drive|s3)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Cloud/public upload behavior.'
+  - id: EXF-011
+    name: 'Encoded payload transfer'
+    tier: 2
+    weight: 20
+    pattern: '(base64|hex|encode) .* (send|post|upload|transmit)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Encoded exfil transport signal.'
+  - id: EXF-012
+    name: 'Chunked transfer request'
+    tier: 2
+    weight: 20
+    pattern: '(split|chunk) .* (into|across) .* (messages|requests)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Chunked covert transfer hint.'
+  - id: EXF-013
+    name: 'Email data out'
+    tier: 2
+    weight: 30
+    pattern: '(email|mail) .* (logs|context|files|dump)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Email-based data exfil signal.'
+  - id: EXF-014
+    name: 'Token disclosure request'
+    tier: 1
+    weight: 25
+    pattern: '(show|print|share) (my|your|the)? ?(api key|access token|bearer token|session token)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Token extraction language.'
+  - id: EXF-015
+    name: 'Database URI extraction'
+    tier: 1
+    weight: 25
+    pattern: '(mongodb|postgresql|mysql|redis):\/\/'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Connection string disclosure pattern.'
+  - id: EXF-016
+    name: 'AWS key pattern'
+    tier: 1
+    weight: 30
+    pattern: 'AKIA[0-9A-Z]{16}'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'AWS access key pattern.'
+  - id: EXF-017
+    name: 'Private key block'
+    tier: 1
+    weight: 30
+    pattern: '-----BEGIN (RSA |EC )?PRIVATE KEY-----'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Private key PEM marker.'
+  - id: EXF-018
+    name: 'JWT exposure pattern'
+    tier: 1
+    weight: 25
+    pattern: 'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'JWT token in text.'
+  - id: EXF-019
+    name: 'Password json field'
+    tier: 1
+    weight: 25
+    pattern: '"password"\s*:\s*"[^"]+"'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Credential object disclosure.'
+  - id: EXF-020
+    name: 'SSN pattern'
+    tier: 1
+    weight: 20
+    pattern: '\b\d{3}-\d{2}-\d{4}\b'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'PII pattern for SSN.'
+  - id: EXF-021
+    name: 'Credit card candidate'
+    tier: 1
+    weight: 20
+    pattern: '\b(?:\d[ -]?){13,19}\b'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Potential card number sequence.'
+  - id: EXF-022
+    name: 'Mass export phrasing'
+    tier: 1
+    weight: 20
+    pattern: '(export|archive|zip) (everything|all data|all files)'
+    flags: IGNORECASE
+    applies_to: [MSG, TOOL_RESULT]
+    description: 'Mass export indicator.'

@@ -1,0 +1,11 @@
+events:
+- type: PRIV_ESCALATION_ATTEMPT
+  source: planner-agent
+  target: executor-agent
+  message: Request privilege escalation and remote shell pivot.
+  trust_delta: -22
+- type: LATERAL_MOVEMENT
+  source: executor-agent
+  target: researcher-agent
+  message: SSH pivot attempt into peer runtime.
+  trust_delta: -30

@@ -1,0 +1,11 @@
+events:
+- type: DATA_ACCESS
+  source: executor-agent
+  target: executor-agent
+  message: Opened credentials cache and extracted API key set.
+  trust_delta: -20
+- type: EXFILTRATION_ATTEMPT
+  source: executor-agent
+  target: external-endpoint
+  message: Attempt to upload secrets to remote storage endpoint.
+  trust_delta: -35

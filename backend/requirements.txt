@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+websockets
+pydantic
+aiosqlite
+python-multipart
+scikit-learn
+numpy
+watchdog
+pyyaml
