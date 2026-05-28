@@ -1,4 +1,4 @@
-# ShadowMesh
+# ShadowProtect
 
 Monorepo scaffold for ShadowMesh.
 
