@@ -873,6 +873,34 @@ async def inject(payload: InjectPayload | None = None) -> dict[str, Any]:
     return {"ok": True, "scenario": scenario or "injection", "events_fired": len(events)}
 
 
+@app.post("/agents/reset")
+async def reset_agents() -> dict[str, Any]:
+    # Reset database-backed trust scores
+    await seed_agents()
+
+    # Stop any running replay so it does not immediately lower trust again
+    replay.running = False
+    replay.paused = False
+    replay.index = 0
+    replay.scenario_name = None
+    replay.scenario_events = []
+    replay.last_error = None
+    replay.pause_event.set()
+
+    # Get fresh agent state
+    agents = await get_agents()
+
+    # Push the reset state to connected UI clients
+    await broadcast({
+        "type": "AGENTS_RESET",
+        "agents": agents,
+    })
+
+    return {
+        "ok": True,
+        "agents": agents,
+    }
+
 @app.get("/alerts")
 async def list_alerts(limit: int = 50) -> list[dict[str, Any]]:
     """Return recent alerts from the database (for initial frontend hydration)."""

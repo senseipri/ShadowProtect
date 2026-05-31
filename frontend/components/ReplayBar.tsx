@@ -81,7 +81,18 @@ export default function ReplayBar() {
 
   const handlePause  = async () => { const s = await post('/replay/pause');  if (s) setStatus(s); };
   const handleResume = async () => { const s = await post('/replay/resume'); if (s) setStatus(s); };
+  const handleReset = async () => {
+    try {
+      await fetch(`${API}/agents/reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
+      window.location.reload();
+    } catch {
+      setError('Failed to reset agents');
+    }
+  };
   const isRunning = status?.running  ?? false;
   const isPaused  = status?.paused   ?? false;
   const progress  = (status && status.total_events > 0)
@@ -212,6 +223,16 @@ export default function ReplayBar() {
                 className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold rounded-md transition-colors"
               >
                 <RotateCcw className="w-3 h-3" />
+              </button>
+
+              <button
+                id="btn-replay-reset"
+                onClick={handleReset}
+                title="Reset agents"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-700 hover:bg-red-600 border border-red-600 text-white text-xs font-semibold rounded-md transition-colors"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Reset
               </button>
             </div>
           </div>

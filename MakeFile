@@ -1,0 +1,130 @@
+# ShadowMesh Makefile
+# Usage: make <target>
+
+.PHONY: dev logs stop inject inject-collusion inject-exfil inject-lateral \
+        backend frontend clean db-reset rules-reload status help
+
+# ── Colours ────────────────────────────────────────────────────────────────
+BOLD  := \033[1m
+GREEN := \033[32m
+CYAN  := \033[36m
+RESET := \033[0m
+
+API := http://localhost:8000
+
+# ── Core ───────────────────────────────────────────────────────────────────
+
+## Start the full stack (builds images if needed)
+dev:
+	@echo "$(BOLD)$(GREEN)Starting ShadowMesh...$(RESET)"
+	docker-compose up --build
+
+## Start in detached mode
+up:
+	docker-compose up --build -d
+	@echo "$(CYAN)Backend:  $(API)$(RESET)"
+	@echo "$(CYAN)Frontend: http://localhost:3000$(RESET)"
+
+## Follow logs from all services
+logs:
+	docker-compose logs -f
+
+## Follow backend logs only
+logs-backend:
+	docker-compose logs -f backend
+
+## Follow frontend logs only
+logs-frontend:
+	docker-compose logs -f frontend
+
+## Stop all services and remove containers
+stop:
+	docker-compose down
+
+## Stop and remove volumes (DELETES database)
+clean:
+	docker-compose down -v
+	@echo "$(BOLD)All containers and volumes removed.$(RESET)"
+
+# ── Demo / inject scenarios ────────────────────────────────────────────────
+
+## Fire a default prompt injection attack
+inject:
+	curl -s -X POST $(API)/inject \
+	    -H "Content-Type: application/json" \
+	    -d '{"scenario": "injection"}' | python3 -m json.tool
+
+## Fire a collusion scenario (2 agents, high-frequency comms)
+inject-collusion:
+	curl -s -X POST $(API)/inject \
+	    -H "Content-Type: application/json" \
+	    -d '{"scenario": "collusion"}' | python3 -m json.tool
+
+## Fire a data exfiltration scenario
+inject-exfil:
+	curl -s -X POST $(API)/inject \
+	    -H "Content-Type: application/json" \
+	    -d '{"scenario": "exfiltration"}' | python3 -m json.tool
+
+## Fire a lateral movement scenario (3-hop taint propagation)
+inject-lateral:
+	curl -s -X POST $(API)/inject \
+	    -H "Content-Type: application/json" \
+	    -d '{"scenario": "lateral_movement"}' | python3 -m json.tool
+
+# ── Replay scenarios ───────────────────────────────────────────────────────
+
+## Start the prompt_injection.yaml replay at 1× speed
+replay-injection:
+	curl -s -X POST $(API)/replay/start \
+	    -H "Content-Type: application/json" \
+	    -d '{"scenario": "prompt_injection.yaml", "speed": 1.0}' | python3 -m json.tool
+
+## Start the collusion.yaml replay at 2× speed
+replay-collusion:
+	curl -s -X POST $(API)/replay/start \
+	    -H "Content-Type: application/json" \
+	    -d '{"scenario": "collusion.yaml", "speed": 2.0}' | python3 -m json.tool
+
+## Pause the current replay
+replay-pause:
+	curl -s -X POST $(API)/replay/pause | python3 -m json.tool
+
+## Resume the current replay
+replay-resume:
+	curl -s -X POST $(API)/replay/resume | python3 -m json.tool
+
+## Check replay status
+replay-status:
+	curl -s $(API)/replay/status | python3 -m json.tool
+
+# ── Utilities ─────────────────────────────────────────────────────────────
+
+## Reload detection rules from disk (no restart needed)
+rules-reload:
+	curl -s -X POST $(API)/rules/reload | python3 -m json.tool
+
+## Show system threat summary
+status:
+	curl -s $(API)/threat-summary | python3 -m json.tool
+
+## Show current agents and trust scores
+agents:
+	curl -s $(API)/agents | python3 -m json.tool
+
+## Show recent alerts
+alerts:
+	curl -s "$(API)/alerts?limit=10" | python3 -m json.tool
+
+## Reset database (restart backend to re-seed agents)
+db-reset:
+	docker-compose exec backend rm -f /app/data/shadowmesh.db
+	docker-compose restart backend
+	@echo "$(BOLD)Database reset. Agents re-seeded.$(RESET)"
+
+## Show this help
+help:
+	@echo ""
+	@echo "$(BOLD)ShadowMesh — available targets:$(RESET)"
+	@grep -E '^##' Makefile | sed 's/## /  /'
+	@echo ""
