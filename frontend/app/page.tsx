@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * page.tsx — FIXED
+ *
+ * Fixes vs original:
+ *  1. On mount: fetches GET /alerts (was missing) and seeds the store so
+ *     AlertFeed and TrustPanel show history even before new WS events arrive.
+ *  2. On mount: fetches GET /events so AgentGraph can show recent edges on load.
+ *  3. Error handling uses console.warn instead of silent swallowing.
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import { Shield, ChevronDown, Loader2 } from 'lucide-react';
 
@@ -10,7 +20,6 @@ import AlertFeed        from '@/components/AlertFeed';
 import AgentGraph       from '@/components/AgentGraph';
 import ReplayBar        from '@/components/ReplayBar';
 
-/* ── Constants ──────────────────────────────────────────── */
 const API = 'http://localhost:8000';
 
 type Scenario = 'injection' | 'collusion' | 'exfiltration' | 'lateral_movement';
@@ -28,34 +37,62 @@ const THREAT_STYLES = {
   CRITICAL: 'bg-red-500/10     text-red-400     border-red-500/25 animate-pulse',
 } as const;
 
-/* ── Page ────────────────────────────────────────────────── */
 export default function HomePage() {
-  /* Single WS connection for the entire app */
   useSocket();
 
-  /* Store selectors */
   const connected         = useAppStore((s) => s.connected);
   const systemThreatLevel = useAppStore((s) => s.systemThreatLevel);
   const setAgents         = useAppStore((s) => s.setAgents);
   const setSummary        = useAppStore((s) => s.setSystemThreatSummary);
+  const addAlert          = useAppStore((s) => s.addAlert);
+  const addEvent          = useAppStore((s) => s.addEvent);
 
-  /* Inject button state */
   const [injecting,    setInjecting]    = useState(false);
   const [scenario,     setScenario]     = useState<Scenario>('injection');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  /* ── On mount: seed agents + threat summary ── */
+  /* ── On mount: hydrate store from REST endpoints ── */
   useEffect(() => {
+    // Agents
     fetch(`${API}/agents`)
       .then((r) => r.json())
       .then(setAgents)
-      .catch(() => { /* backend may not be up yet */ });
+      .catch((e) => console.warn('[ShadowMesh] /agents fetch failed:', e));
 
+    // Threat summary
     fetch(`${API}/threat-summary`)
       .then((r) => r.json())
       .then(setSummary)
-      .catch(() => {});
+      .catch((e) => console.warn('[ShadowMesh] /threat-summary fetch failed:', e));
+
+    // FIX: Hydrate past alerts so AlertFeed is populated on page load
+    fetch(`${API}/alerts?limit=50`)
+      .then((r) => r.json())
+      .then((alerts: unknown[]) => {
+        // Insert in oldest-first order so newest ends up at the front of the store
+        [...alerts].reverse().forEach((a) => {
+          const alert = a as Record<string, unknown>;
+          addAlert({
+            id:          alert.id as string | number | undefined,
+            kind:        String(alert.kind ?? 'ALERT'),
+            severity:    String(alert.severity ?? 'medium'),
+            description: String(alert.description ?? ''),
+            timestamp:   String(alert.timestamp ?? ''),
+          });
+        });
+      })
+      .catch((e) => console.warn('[ShadowMesh] /alerts fetch failed:', e));
+
+    // FIX: Hydrate past events so AgentGraph shows recent message edges on load
+    fetch(`${API}/events?limit=50`)
+      .then((r) => r.json())
+      .then((events: unknown[]) => {
+        [...events].reverse().forEach((ev) => {
+          addEvent(ev as Parameters<typeof addEvent>[0]);
+        });
+      })
+      .catch((e) => console.warn('[ShadowMesh] /events fetch failed:', e));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -80,24 +117,19 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scenario }),
       });
-    } catch { /* silent */ }
-    /* keep spinner visible for at least 500 ms for visual feedback */
+    } catch (e) {
+      console.warn('[ShadowMesh] /inject failed:', e);
+    }
     setTimeout(() => setInjecting(false), 500);
   };
 
   const currentLabel = SCENARIOS.find((s) => s.value === scenario)?.label ?? 'Injection';
   const threatStyle  = THREAT_STYLES[systemThreatLevel];
 
-  /* ── JSX ── */
   return (
     <div className="app-shell">
 
-      {/* ═══════════════════════════════════════════════════
-          HEADER
-      ═══════════════════════════════════════════════════ */}
       <header className="app-header">
-
-        {/* Logo + tagline */}
         <div className="flex items-center gap-3 mr-auto min-w-0">
           <span className="font-mono text-base font-bold tracking-tight text-slate-100 whitespace-nowrap">
             ShadowMesh
@@ -107,7 +139,6 @@ export default function HomePage() {
           </span>
         </div>
 
-        {/* WS connection dot */}
         <div className="flex items-center gap-1.5 text-[11px] font-semibold shrink-0">
           <span
             className={`ws-dot ${connected ? 'ws-dot--live' : 'ws-dot--dead'}`}
@@ -118,7 +149,6 @@ export default function HomePage() {
           </span>
         </div>
 
-        {/* System threat badge */}
         <div
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-extrabold uppercase tracking-widest shrink-0 ${threatStyle}`}
           aria-label={`System threat level: ${systemThreatLevel}`}
@@ -127,9 +157,7 @@ export default function HomePage() {
           {systemThreatLevel}
         </div>
 
-        {/* ── Inject button + scenario dropdown ── */}
         <div className="relative flex items-center shrink-0" ref={dropdownRef}>
-          {/* Primary action */}
           <button
             id="btn-simulate-injection"
             disabled={injecting}
@@ -144,7 +172,6 @@ export default function HomePage() {
             <span>Simulate {currentLabel}</span>
           </button>
 
-          {/* Chevron toggle */}
           <button
             id="btn-scenario-dropdown"
             onClick={() => setDropdownOpen((v) => !v)}
@@ -159,12 +186,8 @@ export default function HomePage() {
             />
           </button>
 
-          {/* Dropdown menu */}
           {dropdownOpen && (
-            <ul
-              role="listbox"
-              className="scenario-menu"
-            >
+            <ul role="listbox" className="scenario-menu">
               {SCENARIOS.map((s) => (
                 <li key={s.value} role="none">
                   <button
@@ -182,24 +205,17 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ═══════════════════════════════════════════════════
-          MAIN GRID  (left 280px | flex-1 | right 320px)
-      ═══════════════════════════════════════════════════ */}
       <div className="app-grid">
-
-        {/* LEFT — Trust Panel */}
         <aside className="panel panel--left" aria-label="Trust Panel">
           <div className="panel-inner">
             <TrustPanel />
           </div>
         </aside>
 
-        {/* CENTER — Agent Graph */}
         <main className="panel panel--center" aria-label="Agent Graph">
           <AgentGraph />
         </main>
 
-        {/* RIGHT — Alert Feed */}
         <aside className="panel panel--right" aria-label="Alert Feed">
           <div className="panel-inner">
             <AlertFeed />
@@ -207,9 +223,6 @@ export default function HomePage() {
         </aside>
       </div>
 
-      {/* ═══════════════════════════════════════════════════
-          REPLAY BAR  (full-width, collapsible)
-      ═══════════════════════════════════════════════════ */}
       <ReplayBar />
     </div>
   );

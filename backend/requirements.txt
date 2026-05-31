@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 websockets
 pydantic
 aiosqlite
@@ -8,3 +8,4 @@ scikit-learn
 numpy
 watchdog
 pyyaml
+psutil
