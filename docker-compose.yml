@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+
+  # ── Backend ─────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shadowmesh-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app                    # hot-reload: code changes apply instantly
+      - shadowmesh-db:/app/data           # persist SQLite across restarts
+    environment:
+      DATABASE_URL: "sqlite:////app/data/shadowmesh.db"
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Frontend ────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: shadowmesh-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app                   # hot-reload
+      - /app/node_modules                 # keep node_modules from the image
+      - /app/.next                        # keep .next build cache from the image
+    environment:
+      NEXT_PUBLIC_WS_URL: "ws://localhost:8000/ws"
+      NEXT_PUBLIC_API_URL: "http://localhost:8000"
+      NODE_ENV: "development"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  shadowmesh-db:
