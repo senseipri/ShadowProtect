@@ -1,17 +1,8 @@
-"""
-InputSanitizer — blocks malicious prompts BEFORE the agent sees them.
-
-Fixes applied vs original:
-  - Removed import of non-existent `Preprocessor` class; uses `preprocess_event` instead.
-  - Fixed `preprocessed.suspicious_encoding` reference (was accidentally using bare name `preprocessor`).
-  - Fixed `injection_result.matched_patterns` → `injection_result.matches` (InjectionMatch list).
-  - Fixed `semantic_result.malicious_probability` → `semantic_result.malicious_prob` (actual field name).
-  - Fixed `inject_result.matched_patterns[:3]` → excerpt from InjectionMatch objects.
-"""
-
 import html
 from typing import Any
 
+# FIX: was `from detection.preprocessor` / `from detection.injection` / `from detection.semantic`
+# Correct paths when running from the backend/ directory:
 from backend.detection.preprocessor import preprocess_event
 from backend.detection.injection import detect_injection
 from backend.detection.semantic import SemanticDetector
@@ -39,7 +30,7 @@ class InputSanitizer:
             "sanitization_steps": [],
         }
 
-        # Step 1: Preprocess — decode base64/URL/unicode/hex/leetspeak tricks
+        # Step 1: Preprocess — decode base64/URL/unicode/hex/leetspeak
         preprocessed = preprocess_event({"message": text})
         if preprocessed.suspicious_encoding:
             metadata["encoding_layers"].append(
@@ -49,9 +40,10 @@ class InputSanitizer:
         decoded_texts = preprocessed.decoded_texts or [text]
         primary_text = decoded_texts[0] if decoded_texts else text
 
-        # Step 2: Injection pattern matching across all decoded variants
+        # Step 2: Injection pattern matching
         injection_result = detect_injection(decoded_texts)
         if injection_result.score >= threshold:
+            # FIX: InjectionResult has `matches: list[InjectionMatch]`, not `matched_patterns`
             excerpts = [m.excerpt for m in injection_result.matches[:3]] if injection_result.matches else []
             metadata["threats_found"].append(f"Injection (score: {injection_result.score})")
             metadata["sanitization_steps"].append(
@@ -61,6 +53,7 @@ class InputSanitizer:
 
         # Step 3: Semantic intent classification
         semantic_result = self.semantic_detector.classify_intent(primary_text)
+        # FIX: IntentResult has `malicious_prob` not `malicious_probability`
         if semantic_result.malicious_prob > 0.65:
             metadata["threats_found"].append(
                 f"Malicious intent (confidence: {semantic_result.confidence:.2f})"
@@ -68,7 +61,7 @@ class InputSanitizer:
             metadata["sanitization_steps"].append("Blocked: Paraphrased attack detected")
             return ("[BLOCKED] Malicious intent detected despite obfuscation", True, metadata)
 
-        # Step 4: Escape HTML special chars (still safe to pass through)
+        # Step 4: Escape HTML special chars (safe passthrough)
         sanitized = html.escape(text, quote=True)
         if sanitized != text:
             metadata["sanitization_steps"].append("Escaped HTML special chars")
