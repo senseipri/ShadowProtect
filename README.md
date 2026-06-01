@@ -14,7 +14,7 @@
 ╚═╝     ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚══════╝ ╚═════╝   ╚═╝
 ```
 
-# ShadowMesh — Wireshark for AI Agents
+# ShadowProtect — Wireshark for AI Agents
 
 > **Real-time intrusion detection and protection for multi-agent AI systems.**
 
@@ -64,8 +64,8 @@ ShadowMesh wraps your existing agents with a **9-layer detection engine** and a 
 ### Option 1: Docker (recommended)
 
 ```bash
-git clone https://github.com/your-org/shadowmesh.git
-cd shadowmesh
+git clone https://github.com/your-org/shadowprotect.git
+cd shadowprotect
 docker-compose up --build
 ```
 
@@ -91,7 +91,7 @@ pnpm dev
 ## One-Line Integration
 
 ```python
-from shadowmesh import monitor
+from shadowprotect import monitor
 
 # Wrap any agent — zero code changes
 monitored_agent = monitor(your_agent)
@@ -104,7 +104,7 @@ result = monitored_agent.execute(task)
 
 ```python
 from crewai import Agent
-from shadowmesh import monitor
+from shadowprotect import monitor
 
 researcher = Agent(role="Researcher", goal="...", backstory="...")
 researcher = monitor(researcher, backend_url="http://localhost:8000")
@@ -114,7 +114,7 @@ researcher = monitor(researcher, backend_url="http://localhost:8000")
 
 ```python
 from agents import Agent
-from shadowmesh import monitor
+from shadowprotect import monitor
 
 agent = Agent(name="Planner", instructions="...")
 agent = monitor(agent, backend_url="http://localhost:8000")
@@ -123,7 +123,7 @@ agent = monitor(agent, backend_url="http://localhost:8000")
 ### Raw Python callable
 
 ```python
-from shadowmesh import monitor
+from shadowprotect import monitor
 
 def my_agent(task: str) -> str:
     return call_llm(task)
@@ -248,7 +248,7 @@ make rules-reload   # Picks up new rules instantly
 ## Architecture
 
 ```
-shadowmesh/
+shadowprotect/
 ├── backend/              # FastAPI + WebSocket server
 │   ├── detection/        # 9-detector analysis engine
 │   ├── protection/       # 12-module protection layer
