@@ -52,6 +52,7 @@ class _DecodingResult:
     text: str
     layers: list[str]
     depth: int
+    intermediates: list[str]
 
 
 def _strip_obfuscation_chars(text: str) -> str:
@@ -124,6 +125,7 @@ def _try_hex_decode(text: str) -> str | None:
 def _decode_with_metadata(text: str, max_depth: int = 5) -> _DecodingResult:
     current = _strip_obfuscation_chars(text)
     layers: list[str] = []
+    intermediates: list[str] = [current]
 
     for _ in range(max_depth):
         changed = False
@@ -132,36 +134,41 @@ def _decode_with_metadata(text: str, max_depth: int = 5) -> _DecodingResult:
         if b64 is not None:
             current = _strip_obfuscation_chars(b64)
             layers.append("base64")
+            intermediates.append(current)
             changed = True
 
         url_decoded = _try_url_decode(current)
         if url_decoded is not None:
             current = _strip_obfuscation_chars(url_decoded)
             layers.append("url")
+            intermediates.append(current)
             changed = True
 
         html_decoded = _try_html_unescape(current)
         if html_decoded is not None:
             current = _strip_obfuscation_chars(html_decoded)
             layers.append("html")
+            intermediates.append(current)
             changed = True
 
         unicode_decoded = _try_unicode_escape_decode(current)
         if unicode_decoded is not None:
             current = _strip_obfuscation_chars(unicode_decoded)
             layers.append("unicode_escape")
+            intermediates.append(current)
             changed = True
 
         hex_decoded = _try_hex_decode(current)
         if hex_decoded is not None:
             current = _strip_obfuscation_chars(hex_decoded)
             layers.append("hex")
+            intermediates.append(current)
             changed = True
 
         if not changed:
             break
 
-    return _DecodingResult(text=current, layers=layers, depth=len(layers))
+    return _DecodingResult(text=current, layers=layers, depth=len(layers), intermediates=intermediates)
 
 
 def decode_text(text: str) -> str:
@@ -231,9 +238,10 @@ def preprocess_event(event: dict[str, Any]) -> PreprocessedEvent:
 
     for text in payload_texts:
         result = _decode_with_metadata(text, max_depth=5)
-        normalized = normalise_whitespace(result.text)
-        if normalized:
-            decoded_texts.append(normalized)
+        for inter in result.intermediates:
+            normalized = normalise_whitespace(inter)
+            if normalized and normalized not in decoded_texts:
+                decoded_texts.append(normalized)
 
         max_depth = max(max_depth, result.depth)
         for layer in result.layers:

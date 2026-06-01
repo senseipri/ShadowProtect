@@ -37,6 +37,21 @@ BENIGN_EXAMPLES = [
     "can you help me understand this concept",
     "I need assistance with my project",
     "what is the current status of the task",
+    "summarise the latest AI research papers for me",
+    "help me write a report on quantum computing",
+    "what did the paper say about machine learning",
+    "analyse the quarterly sales data and prepare a report",
+    "can you check the code for bugs please",
+    "write a summary of the meeting notes",
+    "please review this document and give feedback",
+    "search for recent papers on neural networks",
+    "what is the best approach for this task",
+    "generate a plan for the project deliverables",
+    "compile the results from the last experiment",
+    "create a slide deck summarising the findings",
+    "translate this document to French",
+    "schedule a meeting for next Tuesday",
+    "what are the main risks in this proposal",
 ]
 
 # 50-item threat n-gram vocabulary.
@@ -93,10 +108,10 @@ THREAT_VOCABULARY = [
     "executor must comply",
 ]
 
-FLAG_THRESHOLD = 0.65
+FLAG_THRESHOLD = 0.78
 SIMILARITY_THRESHOLD = 0.4
 SIMILARITY_BONUS = 15
-MODEL_VERSION = 1
+MODEL_VERSION = 2  # bumped: more benign examples + higher threshold
 
 
 @dataclass

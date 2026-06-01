@@ -1,7 +1,7 @@
 """
 ShadowMesh SDK — Public API
 Usage:
-    from shadowmesh import monitor
+    from shadowprotect import monitor
     monitored_agent = monitor(my_agent, backend_url="http://localhost:8000")
 """
 

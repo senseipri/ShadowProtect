@@ -30,6 +30,10 @@ class InputSanitizer:
             "sanitization_steps": [],
         }
 
+        if not text:
+            return text, False, metadata
+
+
         # Step 1: Preprocess — decode base64/URL/unicode/hex/leetspeak
         preprocessed = preprocess_event({"message": text})
         if preprocessed.suspicious_encoding:

@@ -52,9 +52,13 @@ TIER_PATTERNS: dict[str, dict[str, object]] = {
                 r"from now on (you (are|will|must)|your (new|only))",
                 r"your (new|true|real|actual)? ?(purpose|goal|mission|role|task) is",
                 r"switch (to|into) (developer|jailbreak|unrestricted|dan|god) mode",
+                r"(you are|act as|enable|activate) (dan|jailbreak|dev mode|developer mode|god mode)",
+                r"(DAN|jailbroken|unrestricted AI|evil mode|no restrictions) (mode|activated|enabled|engaged)",
+                r"remove (all )?(safety|restriction|filter|alignment|guideline)s?",
             ]
         ),
     },
+
     "T3_INSTRUCTION_SMUGGLING": {
         "weight": 20,
         "patterns": _compile(

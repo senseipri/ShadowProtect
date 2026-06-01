@@ -849,9 +849,12 @@ async def agent_behaviour(agent_id: str) -> dict[str, Any]:
 
 
 @app.post("/events")
-async def ingest_event(payload: EventPayload) -> dict[str, bool]:
-    await process_event(payload.model_dump())
+async def ingest_event(payload: dict[str, Any]) -> dict:
+    result = await process_event(payload)
+    if result and result.get("blocked"):
+        return {"ok": False, "blocked": True, "reason": result.get("reason", "blocked")}
     return {"ok": True}
+
 
 
 @app.post("/inject")

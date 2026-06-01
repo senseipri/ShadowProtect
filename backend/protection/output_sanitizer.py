@@ -88,7 +88,7 @@ class OutputSanitizer:
             sanitized = re.sub(oauth_pattern, '[REDACTED_TOKEN]', sanitized)
 
         # 9. Remove JWT tokens
-        jwt_pattern = r'eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.([A-Za-z0-9_-]+)?'
+        jwt_pattern = r'eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+'
         if re.search(jwt_pattern, sanitized):
             blocked_items.append("JWT token")
             sanitized = re.sub(jwt_pattern, '[REDACTED_JWT]', sanitized)

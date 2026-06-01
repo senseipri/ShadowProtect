@@ -132,17 +132,17 @@ async def get_events(limit: int = 100) -> list[dict[str, Any]]:
             raw_data = json.loads(row[6]) if row[6] else {}
         except json.JSONDecodeError:
             raw_data = {}
-        results.append(
-            {
-                "id": int(row[0]),
-                "type": row[1],
-                "source": row[2],
-                "target": row[3],
-                "message": row[4],
-                "timestamp": row[5],
-                "raw_json": raw_data,
-            }
-        )
+        event_dict = {
+            "id": int(row[0]),
+            "type": row[1],
+            "source": row[2],
+            "target": row[3],
+            "message": row[4],
+            "timestamp": row[5],
+        }
+        if isinstance(raw_data, dict):
+            event_dict.update(raw_data)
+        results.append(event_dict)
     return results
 
 
