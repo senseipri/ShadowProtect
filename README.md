@@ -67,7 +67,7 @@ ShadowProtect wraps your existing agents with a **9-layer detection engine** and
 Install the lightweight Python client from PyPI:
 
 ```bash
-pip install shadowprotect
+pip install shadowprotect==0.1.0
 ```
 
 **Requirements:** Python 3.11+
@@ -439,4 +439,4 @@ Incoming Event
 
 ## License
 
-MIT © 2025 ShadowMesh Contributors
+MIT © 2025 ShadowProtect Contributors
