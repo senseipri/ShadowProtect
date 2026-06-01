@@ -1,17 +1,7 @@
-"""
-MessageVerifier — cryptographic signing of inter-agent messages.
-
-Fix: `hmac.new()` does not exist in Python's hmac module.
-     The correct constructor is `hmac.new(key, msg, digestmod)`.
-     Python's actual API is `hmac.new(key, msg=None, digestmod='')` —
-     which does exist but requires bytes for key. Fixed both calls.
-"""
-
 import hashlib
-import hmac
+import hmac  # FIX: hmac.new() requires key as bytes, not str
 import json
 import time
-from typing import Any
 
 
 class MessageVerifier:
@@ -20,15 +10,17 @@ class MessageVerifier:
     Prevent MITM attacks and message forgery.
     """
 
-    def __init__(self, secret_key: str | None = None) -> None:
-        self.secret_key = (secret_key or "shadowmesh-default-key-change-in-prod").encode()
-        self.msg_cache: dict[str, float] = {}
+    def __init__(self, secret_key: str = None):
+        # FIX: store key as bytes — hmac.new() requires bytes, not str
+        raw = secret_key or "shadowmesh-default-key-change-in-prod"
+        self.secret_key: bytes = raw.encode() if isinstance(raw, str) else raw
+        self.msg_cache: dict = {}
 
     def _sign(self, payload: str) -> str:
+        # FIX: hmac.new(key_bytes, msg_bytes, digestmod) — all three args required
         return hmac.new(self.secret_key, payload.encode(), hashlib.sha256).hexdigest()
 
-    def sign_message(self, sender_id: str, recipient_id: str, content: str) -> dict[str, Any]:
-        """Create a cryptographically signed message."""
+    def sign_message(self, sender_id: str, recipient_id: str, content: str) -> dict:
         timestamp = time.time()
         msg_to_sign = json.dumps(
             {"sender": sender_id, "recipient": recipient_id, "content": content, "timestamp": timestamp},
@@ -42,8 +34,7 @@ class MessageVerifier:
             "signature": self._sign(msg_to_sign),
         }
 
-    def verify_message(self, message: dict[str, Any]) -> tuple[bool, str]:
-        """Verify a signed message. Returns (is_valid, reason)."""
+    def verify_message(self, message: dict) -> tuple[bool, str]:
         try:
             msg_to_sign = json.dumps(
                 {
@@ -57,15 +48,16 @@ class MessageVerifier:
         except KeyError as e:
             return (False, f"Missing field: {e}")
 
-        expected = self._sign(msg_to_sign)
-        if not hmac.compare_digest(expected, str(message.get("signature", ""))):
-            return (False, "Signature verification failed — message may be forged")
+        expected_sig = self._sign(msg_to_sign)
+
+        if not hmac.compare_digest(expected_sig, str(message.get("signature", ""))):
+            return (False, "Signature verification failed - message may be forged")
 
         age = time.time() - float(message["timestamp"])
         if age > 300:
             return (False, f"Message too old ({age:.0f}s)")
 
-        sig = str(message.get("signature", ""))
+        sig = message.get("signature")
         if sig in self.msg_cache and time.time() - self.msg_cache[sig] < 1:
             return (False, "Possible replay attack detected")
 

@@ -1,11 +1,4 @@
-"""
-TaintBlocker — quarantine compromised agents.
-
-Fix: `time` was used but never imported (NameError on quarantine()).
-"""
-
-import time
-from typing import Any
+import time  # FIX: was missing — caused NameError on quarantine()
 
 
 class TaintBlocker:
@@ -17,15 +10,15 @@ class TaintBlocker:
     4. Quarantine it from other agents
     """
 
-    def __init__(self) -> None:
-        self.quarantined_agents: dict[str, dict[str, Any]] = {}
+    def __init__(self):
+        self.quarantined_agents = {}
 
-    def quarantine(self, agent_id: str, reason: str, taint_level: float) -> dict[str, Any]:
+    def quarantine(self, agent_id: str, reason: str, taint_level: float) -> dict:
         """Isolate an agent completely."""
         self.quarantined_agents[agent_id] = {
             "reason": reason,
             "taint_level": taint_level,
-            "quarantined_at": time.time(),
+            "quarantined_at": time.time(),  # now works
             "allowed_operations": ["read_memory", "read_logs"],
             "blocked_operations": ["send_message", "call_tool", "send_email"],
         }
@@ -37,11 +30,12 @@ class TaintBlocker:
     def can_perform(self, agent_id: str, operation: str) -> tuple[bool, str]:
         if not self.is_quarantined(agent_id):
             return (True, "Agent not quarantined")
-        info = self.quarantined_agents[agent_id]
-        if operation not in info.get("allowed_operations", []):
+        quarantine_info = self.quarantined_agents[agent_id]
+        if operation not in quarantine_info.get("allowed_operations", []):
             return (False, f"Operation '{operation}' blocked: agent is quarantined")
         return (True, "Operation allowed for quarantined agent")
 
-    def release_from_quarantine(self, agent_id: str) -> dict[str, Any]:
-        self.quarantined_agents.pop(agent_id, None)
+    def release_from_quarantine(self, agent_id: str) -> dict:
+        if agent_id in self.quarantined_agents:
+            del self.quarantined_agents[agent_id]
         return {"status": "RELEASED", "agent": agent_id, "note": "Manual verification required"}
