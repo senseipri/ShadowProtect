@@ -390,10 +390,18 @@ async def broadcast(payload: dict[str, Any]) -> None:
 async def process_event(event: dict[str, Any]) -> dict[str, Any]:
     assert _full_engine is not None, "Detection engine not initialised"
 
+    event = dict(event)
+    metadata = event.get("metadata")
+    if isinstance(metadata, dict):
+        for key in ("tool_name", "tool", "args", "operation"):
+            if key in metadata and key not in event:
+                event[key] = metadata[key]
+
     source  = str(event.get("source") or "unknown-agent")
     target  = str(event.get("target") or "")
     message = str(event.get("message") or "")
     e_type  = str(event.get("type") or "EVENT").upper()
+    block_reason: str | None = None
 
     # ── PROTECTION LAYER 1: Input Sanitization ────────────────────────────
     sanitized_msg, was_blocked, sanitize_meta = _input_sanitizer.sanitize(message, source)
@@ -409,6 +417,8 @@ async def process_event(event: dict[str, Any]) -> dict[str, Any]:
         await broadcast({"type": "ALERT", "alert": block_alert})
         event["message"] = sanitized_msg
         message = sanitized_msg
+        if e_type == "AGENT_START":
+            block_reason = "Input blocked before agent execution"
 
     # ── PROTECTION LAYER 2: Scope Enforcement ────────────────────────────
     if e_type == "TOOL_CALL":
@@ -424,12 +434,12 @@ async def process_event(event: dict[str, Any]) -> dict[str, Any]:
             }
             await save_alert(scope_alert)
             await broadcast({"type": "ALERT", "alert": scope_alert})
-            return {"blocked": True, "reason": deny_reason}
+            return {"blocked": True, "reason": deny_reason, "event": event}
 
     # ── PROTECTION LAYER 3: Dangerous Operation Blocking ─────────────────
     op_name = str(event.get("operation") or event.get("tool_name") or "")
     if op_name:
-        is_blocked_op, block_reason, op_severity = _op_blocker.check_operation(
+        is_blocked_op, op_block_reason, op_severity = _op_blocker.check_operation(
             op_name, event.get("args", {})
         )
         if is_blocked_op:
@@ -437,12 +447,12 @@ async def process_event(event: dict[str, Any]) -> dict[str, Any]:
                 "kind": "DANGEROUS_OP_BLOCKED",
                 "source_agent": source,
                 "severity": op_severity.lower(),
-                "description": block_reason,
+                "description": op_block_reason,
                 "timestamp": utc_now_iso(),
             }
             await save_alert(op_alert)
             await broadcast({"type": "ALERT", "alert": op_alert})
-            return {"blocked": True, "reason": block_reason}
+            return {"blocked": True, "reason": op_block_reason, "event": event}
 
     # ── PROTECTION LAYER 4: Rate Limiting ────────────────────────────────
     is_rate_limited, limit_info = _rate_limiter.is_rate_limited(source, e_type)
@@ -456,7 +466,7 @@ async def process_event(event: dict[str, Any]) -> dict[str, Any]:
         }
         await save_alert(rate_alert)
         await broadcast({"type": "ALERT", "alert": rate_alert})
-        return {"blocked": True, "reason": "Rate limit exceeded"}
+        return {"blocked": True, "reason": "Rate limit exceeded", "event": event}
 
     # ── PROTECTION LAYER 5: Quarantine Check ─────────────────────────────
     if _taint_blocker.is_quarantined(source):
@@ -472,7 +482,7 @@ async def process_event(event: dict[str, Any]) -> dict[str, Any]:
                     "timestamp": utc_now_iso(),
                 },
             })
-            return {"blocked": True, "reason": q_reason}
+            return {"blocked": True, "reason": q_reason, "event": event}
 
     # ── COLLUSION DETECTION ───────────────────────────────────────────────
     if source and target:
@@ -514,6 +524,8 @@ async def process_event(event: dict[str, Any]) -> dict[str, Any]:
         })
         if verdict.severity == "CRITICAL":
             _taint_blocker.quarantine(source, verdict.primary_threat_type, 1.0)
+        if e_type == "AGENT_START" and not block_reason:
+            block_reason = f"Execution blocked by threat verdict: {verdict.severity}"
 
     # ── PROTECTION LAYER 6: Output Sanitization ───────────────────────────
     filtered_message, blocked_items = _output_sanitizer.sanitize(message, source)
@@ -573,7 +585,20 @@ async def process_event(event: dict[str, Any]) -> dict[str, Any]:
             "timestamp":    utc_now_iso(),
         })
 
-    return {"threat_verdict": verdict.__dict__}
+    if block_reason:
+        return {
+            "blocked": True,
+            "reason": block_reason,
+            "event": combined,
+            "threat_verdict": verdict.__dict__,
+        }
+
+    return {
+        "ok": True,
+        "blocked": False,
+        "event": combined,
+        "threat_verdict": verdict.__dict__,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -852,8 +877,19 @@ async def agent_behaviour(agent_id: str) -> dict[str, Any]:
 async def ingest_event(payload: dict[str, Any]) -> dict:
     result = await process_event(payload)
     if result and result.get("blocked"):
-        return {"ok": False, "blocked": True, "reason": result.get("reason", "blocked")}
-    return {"ok": True}
+        return {
+            "ok": False,
+            "blocked": True,
+            "reason": result.get("reason", "blocked"),
+            "event": result.get("event", payload),
+            "threat_verdict": result.get("threat_verdict"),
+        }
+    return {
+        "ok": True,
+        "blocked": False,
+        "event": result.get("event", payload) if isinstance(result, dict) else payload,
+        "threat_verdict": result.get("threat_verdict") if isinstance(result, dict) else None,
+    }
 
 
 
