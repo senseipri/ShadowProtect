@@ -13,7 +13,7 @@ from typing import Any
 
 import httpx
 
-SDK_VERSION = "0.1.0"
+SDK_VERSION = "0.1.1"
 logger = logging.getLogger("shadowmesh.emitter")
 
 
@@ -55,12 +55,13 @@ class EventEmitter:
         target: str | None = None,
         message: str = "",
         metadata: dict[str, Any] | None = None,
-    ) -> None:
+        extra: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Emit a single event to the backend.
         Silently ignores all errors so the monitored agent is never blocked.
         """
-        payload = self._build_payload(event_type, source, target, message, metadata)
+        payload = self._build_payload(event_type, source, target, message, metadata, extra)
 
         for attempt in range(1, self.max_retries + 1):
             try:
@@ -70,7 +71,7 @@ class EventEmitter:
                         json=payload,
                     )
                     resp.raise_for_status()
-                    return  # success
+                    return self._parse_response(resp, payload)
             except Exception as exc:
                 logger.debug(
                     "ShadowMesh emit attempt %d/%d failed: %s",
@@ -80,7 +81,7 @@ class EventEmitter:
                 )
                 if attempt < self.max_retries:
                     await asyncio.sleep(self.retry_delay)
-        # All retries exhausted — fail silently
+        return self._default_response(payload)
 
     # ------------------------------------------------------------------
     # Sync emit (for sync agent frameworks like bare callables)
@@ -92,12 +93,13 @@ class EventEmitter:
         target: str | None = None,
         message: str = "",
         metadata: dict[str, Any] | None = None,
-    ) -> None:
+        extra: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Synchronous version of emit(). Uses httpx in sync mode.
         Silently ignores all errors.
         """
-        payload = self._build_payload(event_type, source, target, message, metadata)
+        payload = self._build_payload(event_type, source, target, message, metadata, extra)
 
         for attempt in range(1, self.max_retries + 1):
             try:
@@ -107,7 +109,7 @@ class EventEmitter:
                         json=payload,
                     )
                     resp.raise_for_status()
-                    return
+                    return self._parse_response(resp, payload)
             except Exception as exc:
                 logger.debug(
                     "ShadowMesh sync emit attempt %d/%d failed: %s",
@@ -117,6 +119,7 @@ class EventEmitter:
                 )
                 if attempt < self.max_retries:
                     time.sleep(self.retry_delay)
+        return self._default_response(payload)
 
     # ------------------------------------------------------------------
     # Internal
@@ -128,6 +131,7 @@ class EventEmitter:
         target: str | None,
         message: str,
         metadata: dict[str, Any] | None,
+        extra: dict[str, Any] | None,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "type": event_type.upper(),
@@ -139,4 +143,26 @@ class EventEmitter:
         }
         if metadata:
             payload["metadata"] = metadata
+        if extra:
+            payload.update(extra)
         return payload
+
+    def _parse_response(self, resp: httpx.Response, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            data = resp.json()
+        except ValueError:
+            return self._default_response(payload)
+
+        if isinstance(data, dict):
+            data.setdefault("blocked", False)
+            data.setdefault("event", payload)
+            return data
+
+        return self._default_response(payload)
+
+    def _default_response(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "ok": False,
+            "blocked": False,
+            "event": payload,
+        }
