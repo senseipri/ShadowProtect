@@ -24,6 +24,15 @@ from .emitter import EventEmitter
 logger = logging.getLogger("shadowmesh.simulate")
 
 
+def _normalise_agent_id(name: str) -> str:
+    value = str(name).strip().lower().replace("_", "-")
+    if not value:
+        return "unknown-agent"
+    if value.endswith("-agent"):
+        return value
+    return f"{value}-agent"
+
+
 class SimulatedAgent:
     """
     A fake agent that emits real ShadowMesh events for testing / demo replay.
@@ -43,7 +52,7 @@ class SimulatedAgent:
         backend_url: str = "http://localhost:8000",
     ) -> None:
         self.name = name
-        self.agent_id = f"{name.lower().rstrip('-agent')}-agent"
+        self.agent_id = _normalise_agent_id(name)
         self.emitter = EventEmitter(backend_url=backend_url)
 
     # ------------------------------------------------------------------
@@ -52,7 +61,7 @@ class SimulatedAgent:
 
     async def send_message(self, to: str, message: str, metadata: dict[str, Any] | None = None) -> None:
         """Emit a MSG event from this agent to *to*."""
-        target_id = f"{to.lower().rstrip('-agent')}-agent" if not to.endswith("-agent") else to
+        target_id = _normalise_agent_id(to)
         await self.emitter.emit(
             event_type="MSG",
             source=self.agent_id,
@@ -70,6 +79,7 @@ class SimulatedAgent:
             target=self.agent_id,
             message=f"Tool: {tool_name}",
             metadata={"tool_name": tool_name, "args": args or {}},
+            extra={"tool_name": tool_name, "args": args or {}},
         )
         logger.debug("[%s] tool_call: %s(%s)", self.agent_id, tool_name, args)
 
@@ -137,8 +147,8 @@ class SimulatedAgent:
             metadata = {k: v for k, v in ev.items() if k not in ("type", "from", "source", "to", "target", "msg", "message", "delay", "t")}
 
             # Normalise agent IDs
-            source = f"{from_id.lower().rstrip('-agent')}-agent"
-            target = f"{to_id.lower().rstrip('-agent')}-agent" if to_id else ""
+            source = _normalise_agent_id(from_id)
+            target = _normalise_agent_id(to_id) if to_id else ""
 
             await self.emitter.emit(
                 event_type=ev_type,
@@ -146,6 +156,10 @@ class SimulatedAgent:
                 target=target,
                 message=message,
                 metadata=metadata if metadata else None,
+                extra={
+                    k: v for k, v in metadata.items()
+                    if k in {"tool_name", "args", "operation", "tool"}
+                } if metadata else None,
             )
             logger.debug(
                 "Scenario event %d/%d [%s]: [%s] → [%s]: %s",
