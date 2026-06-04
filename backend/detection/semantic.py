@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import sklearn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics.pairwise import cosine_similarity
@@ -112,6 +113,7 @@ FLAG_THRESHOLD = 0.78
 SIMILARITY_THRESHOLD = 0.4
 SIMILARITY_BONUS = 15
 MODEL_VERSION = 2  # bumped: more benign examples + higher threshold
+MODEL_CACHE_TAG = f"v{MODEL_VERSION}_sk{sklearn.__version__.replace('.', '_')}"
 
 
 @dataclass
@@ -130,7 +132,7 @@ class IntentResult:
 class SemanticDetector:
     def __init__(self, model_path: Path | None = None) -> None:
         backend_dir = Path(__file__).resolve().parents[1]
-        self.model_path = model_path or (backend_dir / "models" / "intent_classifier.pkl")
+        self.model_path = model_path or (backend_dir / "models" / f"intent_classifier_{MODEL_CACHE_TAG}.pkl")
         self.model_path.parent.mkdir(parents=True, exist_ok=True)
 
         self.vectorizer: TfidfVectorizer | None = None
@@ -144,7 +146,10 @@ class SemanticDetector:
             try:
                 with self.model_path.open("rb") as f:
                     payload = pickle.load(f)
-                if int(payload.get("version", -1)) == MODEL_VERSION:
+                if (
+                    int(payload.get("version", -1)) == MODEL_VERSION
+                    and payload.get("sklearn_version") == sklearn.__version__
+                ):
                     self.vectorizer = payload["vectorizer"]
                     self.classifier = payload["classifier"]
                     self.threat_centroid = payload["threat_centroid"]
@@ -170,6 +175,7 @@ class SemanticDetector:
 
         payload: dict[str, Any] = {
             "version": MODEL_VERSION,
+            "sklearn_version": sklearn.__version__,
             "vectorizer": vectorizer,
             "classifier": classifier,
             "threat_centroid": threat_centroid,
