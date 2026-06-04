@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shadowprotect"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
-  { name="Your Name", email="your.email@example.com" },
+  { name="ShadowProtect Contributors" },
 ]
 description = "Wireshark for AI Agents: Real-time intrusion detection and protection."
 readme = "README.md"
@@ -20,11 +20,12 @@ classifiers = [
 dependencies = [
     "httpx>=0.24.0",
     "pydantic>=2.0.0",
+    "pyyaml>=6.0.0",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/your-username/shadowprotect"
-"Bug Tracker" = "https://github.com/your-username/shadowprotect/issues"
+"Homepage" = "https://github.com/senseipri/ShadowProtect"
+"Bug Tracker" = "https://github.com/senseipri/ShadowProtect/issues"
 
 [tool.setuptools]
 packages = ["shadowprotect"]
